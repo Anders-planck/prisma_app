@@ -49,7 +49,8 @@ const TodoComponent: React.FC<Props> = ({ todo, saveElementEdit, deleteTodoEleme
         }
     }
     return (
-        <div onDoubleClick={() => setEdit(true)} className={`w-full  border-2 shadow-sm my-2 ${!edit ? " flex justify-between items-center" : ""}`}>
+        <>
+        <div onDoubleClick={() => setEdit(true)} className={`p-2  w-full  border-2 shadow-sm my-2 ${!edit ? "flex justify-between items-center flex-wrap" : ""}`}>
             <div className="flex justify-start items-center p-2">
                 {!edit ?
                     <div className="flex flex-col">
@@ -77,6 +78,7 @@ const TodoComponent: React.FC<Props> = ({ todo, saveElementEdit, deleteTodoEleme
             }
 
         </div>
+        </>
     )
 }
 

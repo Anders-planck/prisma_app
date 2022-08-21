@@ -59,12 +59,12 @@ const Home: React.FC<Props> = ({ initialTodos }) => {
   }
 
   return (
-    <div className="w-2/3 mx-auto my-8" >
+    <div className="w-full lg:w-1/2 lg:mx-auto my-8 p-4 overflow-hidden" >
       <h1 className=" font-extrabold text-3xl underline underline-offset-4 decoration-indigo-900 mb-8">TODO</h1>
       <div className="flex">
         <input
           type="text"
-          className="w-full bg-gray-100 rounded p-2 mr-4 border focus:outline-none focus:border-blue-500"
+          className="w-full bg-gray-100 rounded p-2 mr-4  border focus:outline-none focus:border-blue-500"
           placeholder="write your message here..."
           value={todo}
           onKeyDown={async (e) => {
