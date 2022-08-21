@@ -1,84 +1,97 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+import { Prisma, PrismaClient, Todo } from '@prisma/client'
+import { debug } from 'console'
+import React, { useState } from 'react'
+import TodoComponent from '../components/TodoComponent'
 
-const Home: NextPage = () => {
+const prima = new PrismaClient()
+
+export async function getServerSideProps() {
+  const initialTodos: Todo[] = await prima.todo.findMany()
+
+  return {
+    props: { initialTodos: initialTodos },
+  }
+}
+
+interface Props {
+  initialTodos: Todo[]
+}
+
+async function savaTodo(todo: Prisma.TodoCreateInput) {
+  const response = await fetch("/api/todos/add", {
+    method: "POST",
+    body: JSON.stringify(todo)
+  })
+
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  return await response.json()
+}
+
+
+const Home: React.FC<Props> = ({ initialTodos }) => {
+  const [todos, setTodos] = useState<Todo[]>(initialTodos)
+  const [todo, setTodo] = useState<string>('')
+
+  const saveElementEdit = (todoEdit: Todo) => {
+    setTodos(todos.map(todo => {
+      if (todo.id == todoEdit.id) todo.content = todoEdit.content
+      return todo
+    }))
+  }
+
+  const deleteTodoElement = (todoEl: Todo) => {
+    setTodos(todos.filter(todo => todo.id != todoEl.id ))
+  }
+
+
+
+  async function AddTodo() {
+    try {
+      const s: Todo = await savaTodo({ id: undefined, content: todo });
+      setTodos([{ ...s }, ...todos])
+      setTodo('');
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
-        </h1>
-
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="rounded-md bg-gray-100 p-3 font-mono text-lg">
-            pages/index.tsx
-          </code>
-        </p>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and its API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className="flex h-24 w-full items-center justify-center border-t">
-        <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className="w-2/3 mx-auto my-8" >
+      <h1 className=" font-extrabold text-3xl underline underline-offset-4 decoration-indigo-900 mb-8">TODO</h1>
+      <div className="flex">
+        <input
+          type="text"
+          className="w-full bg-gray-100 rounded p-2 mr-4 border focus:outline-none focus:border-blue-500"
+          placeholder="write your message here..."
+          value={todo}
+          onKeyDown={async (e) => {
+            if (e.key === 'Enter') {
+              console.log('Enter key pressed ✅');
+              AddTodo()
+            }
+          }}
+          onChange={(e) => setTodo(e.target.value)}
+        />
+        <button
+          className="bg-slate-300 px-4 rounded-sm"
+          onClick={AddTodo}
         >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-        </a>
-      </footer>
+          save
+        </button>
+      </div>
+
+      <div className="flex flex-col-reverse justify-start items-start mt-10">
+        {todos.map((t: Todo, index: number) => (
+          <TodoComponent
+            key={index}
+            todo={t}
+            saveElementEdit={saveElementEdit}
+            deleteTodoElement={deleteTodoElement} />
+        ))}
+      </div>
     </div>
   )
 }
