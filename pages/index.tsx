@@ -50,6 +50,7 @@ const Home: React.FC<Props> = ({ initialTodos }) => {
 
   async function AddTodo() {
     try {
+      if(todo == '' || todo.length == 0) return
       const s: Todo = await savaTodo({ id: undefined, content: todo });
       setTodos([{ ...s }, ...todos])
       setTodo('');
